@@ -1,0 +1,57 @@
+import pandas as pd
+
+# Load the dataset
+url = "https://www.kaggle.com/spittman1248/cdc-data-nutrition-physical-activity-obesity/download"
+data = pd.read_csv(url)
+# Drop rows with missing target values
+data = data.dropna(subset=['obesity_low', 'obesity_high'])
+
+# Select relevant features for the model
+selected_features = ['age', 'income', 'locationdesc', 'confidence_limit_low', 'confidence_limit_high',
+                     'education', 'gender', 'class', 'sample_size']
+X = data[selected_features]
+
+# Fill missing values with appropriate values or strategies
+X.fillna({'education': 'Unknown', 'gender': 'Unknown'}, inplace=True)
+
+# Convert categorical variables to numerical using one-hot encoding
+X_encoded = pd.get_dummies(X, columns=['age', 'income', 'locationdesc', 'education', 'gender', 'class'], drop_first=True)
+
+# Extract target values
+y_low = data['obesity_low']
+y_high = data['obesity_high']
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error
+
+# Split the data into train and test sets
+X_train, X_test, y_low_train, y_low_test, y_high_train# Make predictions
+y_low_pred = model_low.predict(X_test)
+y_high_pred = model_high.predict(X_test)
+
+# Calculate mean squared error
+mse_low = mean_squared_error(y_low_test, y_low_pred)
+mse_high = mean_squared_error(y_high_test, y_high_pred)
+print("Mean Squared Error (Low Confidence):", mse_low)
+print("Mean Squared Error (High Confidence):", mse_high)
+, y_high_test = train_test_split(X_encoded, y_low, y_high, test_size=0.2, random_state=42)
+
+# Initialize the model (Random Forest Regressor)
+model_low = RandomForestRegressor(random_state=42)
+model_high = RandomForestRegressor(random_state=42)
+
+# Train the models
+model_low.fit(X_train, y_low_train)
+model_high.fit(X_train, y_high_train)
+# Load new data for prediction
+new_data = pd.read_csv("new_data.csv")  # Replace with the path to your new data
+
+# Preprocess the new data similar to the training data
+new_data_processed = pd.get_dummies(new_data[selected_features], columns=['age', 'income', 'locationdesc', 'education', 'gender', 'class'], drop_first=True)
+new_data_low_pred = model_low.predict(new_data_processed)
+new_data_high_pred = model_high.predict(new_data_processed)
+
+# Display the predicted percentages of obese population
+print("Predicted Percentage of Obese Population (Low Confidence):", new_data_low_pred)
+print("Predicted Percentage of Obese Population (High Confidence):", new_data_high_pred)
+
