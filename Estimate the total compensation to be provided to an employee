@@ -3,3 +3,55 @@ import pandas as pd
 # Load the dataset
 url = "https://drive.google.com/uc?id=1mSkKEe0SUJ7AZHiubxKSke7HWf75JA_Z"
 data = pd.read_csv(url)
+# Drop unnecessary columns that won't contribute to compensation estimation
+data = data.drop(['OGC', 'OG', 'DC', 'Dept', 'UC', 'Union', 'JF', 'Job', 'EI'], axis=1)
+
+# Convert 'YT' column to a binary indicator (0 for Fiscal, 1 for Calendar)
+data['YT'] = (data['YT'] == 'Calendar').astype(int)
+
+# Check for missing values and handle them if necessary
+data.fillna(0, inplace=True)  # Filling missing values with 0 for simplicity
+
+# Separate features and target
+X = data.drop('Total_Compensation', axis=1)
+y = data['Total_Compensation']
+from sklearn.preprocessing import StandardScaler
+
+# Scale the features
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+from sklearn.model_selection import train_test_split
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import mean_squared_error
+
+# Split the data into train and test sets
+X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.2, random_state=42)
+
+# Initialize the model (Random Forest Regressor)
+model = RandomForestRegressor(random_state=42)
+
+# Train the model
+model.fit(X_train, y_train)
+# Make predictions
+y_pred = model.predict(X_test)
+
+# Calculate mean squared error
+mse = mean_squared_error(y_test, y_pred)
+print("Mean Squared Error:", mse)
+# Load new employee data for prediction
+new_employee_data = pd.read_csv("new_employee_data.csv")  # Replace with the path to your new data
+
+# Preprocess the new employee data
+new_employee_data = new_employee_data.drop(['OGC', 'OG', 'DC', 'Dept', 'UC', 'Union', 'JF', 'Job', 'EI'], axis=1)
+new_employee_data['YT'] = (new_employee_data['YT'] == 'Calendar').astype(int)
+new_employee_data.fillna(0, inplace=True)
+new_employee_features = scaler.transform(new_employee_data)
+
+# Predict total compensation using the trained model
+predicted_total_compensation = model.predict(new_employee_features)
+
+# Add the predicted total compensation to the new employee data
+new_employee_data['Predicted_Total_Compensation'] = predicted_total_compensation
+
+# Display the new employee data with predictions
+print(new_employee_data)
