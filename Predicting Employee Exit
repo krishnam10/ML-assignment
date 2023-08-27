@@ -1,0 +1,49 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder, StandardScaler
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score
+
+# Load the dataset
+url = "https://raw.githubusercontent.com/tranghth-lux/data-science-complete-tutorial/master/Data/HR_comma_sep.csv.txt"
+data = pd.read_csv(url)
+# Separate features and target
+X = data.drop('left', axis=1)
+y = data['left']
+
+# Encode categorical features using One-Hot Encoding
+X = pd.get_dummies(X, columns=['sales', 'salary'], drop_first=True)
+
+# Split data into train and test sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Standardize numerical features
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+# Initialize the model (Random Forest Classifier)
+model = RandomForestClassifier(random_state=42)
+
+# Train the model
+model.fit(X_train, y_train)
+# Make predictions
+y_pred = model.predict(X_test)
+
+# Calculate accuracy
+accuracy = accuracy_score(y_test, y_pred)
+print("Accuracy:", accuracy)
+# Load new data for prediction
+new_data = pd.read_csv("new_employee_data.csv")  # Replace with the path to your new data
+
+# Preprocess the new data similar to the training data
+new_data = pd.get_dummies(new_data, columns=['sales', 'salary'], drop_first=True)
+new_data = scaler.transform(new_data)
+
+# Make predictions using the trained model
+predictions = model.predict(new_data)
+
+# Add the predictions to the new data
+new_data['predicted_exit'] = predictions
+
+# Display the new data with predictions
+print(new_data)
