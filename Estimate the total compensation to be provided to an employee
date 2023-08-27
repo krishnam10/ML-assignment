@@ -1,0 +1,5 @@
+import pandas as pd
+
+# Load the dataset
+url = "https://drive.google.com/uc?id=1mSkKEe0SUJ7AZHiubxKSke7HWf75JA_Z"
+data = pd.read_csv(url)
